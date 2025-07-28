@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemma 3n Chat App</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chat-container {
+      width: 90%;
+      max-width: 800px;
+      height: 85vh;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .loading-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.98);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+    }
+
+    .loading-screen.hidden {
+      display: none;
+    }
+
+    .loading-content {
+      text-align: center;
+      max-width: 500px;
+      padding: 40px;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid #e9ecef;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 30px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-title {
+      font-size: 1.8em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .loading-message {
+      color: #6c757d;
+      margin-bottom: 25px;
+      line-height: 1.5;
+      font-size: 1.1em;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #e9ecef;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 5px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .progress-text {
+      font-size: 1em;
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 25px;
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: 600;
+    }
+
+    .model-info {
+      background: #f8f9fa;
+      padding: 15px 25px;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 0.9em;
+      color: #6c757d;
+      text-align: center;
+    }
+
+    .status {
+      padding: 10px 25px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 0.9em;
+      color: #6c757d;
+    }
+
+    .status.loading {
+      color: #ffc107;
+    }
+
+    .status.ready {
+      color: #28a745;
+    }
+
+    .status.error {
+      color: #dc3545;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 25px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 15px 20px;
+      border-radius: 18px;
+      font-size: 0.95em;
+      line-height: 1.5;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background: #f8f9fa;
+      color: #333;
+      border: 1px solid #e9ecef;
+    }
+
+    .message.loading {
+      background: #e9ecef;
+      color: #6c757d;
+      font-style: italic;
+    }
+
+    .chat-input {
+      padding: 25px;
+      border-top: 1px solid #e9ecef;
+      background: #f8f9fa;
+    }
+
+    .input-container {
+      display: flex;
+      gap: 15px;
+    }
+
+    input {
+      flex: 1;
+      padding: 15px 20px;
+      border: 2px solid #e9ecef;
+      border-radius: 25px;
+      outline: none;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      border-color: #667eea;
+    }
+
+    input:disabled {
+      background-color: #f8f9fa;
+      cursor: not-allowed;
+    }
+
+    button {
+      padding: 15px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1em;
+      transition: transform 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #6c757d;
+      font-style: italic;
+      margin-top: 50px;
+      font-size: 1.1em;
+    }
+
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+      padding: 15px;
+      margin: 15px;
+      border-radius: 10px;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container" id="chatContainer">
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-title">Loading Gemma 3n Model</div>
+        <div class="loading-message" id="loadingMessage">
+          Initializing Gemma 3n model...
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">0%</div>
+        <div class="warning">
+          <strong>First-time setup:</strong> This may take 5-15 minutes to download the model files (~6GB). 
+          Subsequent loads will be much faster thanks to caching.
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-header">
+      🤖 Gemma 3n Chat Assistant
+    </div>
+    
+    <div class="model-info">
+      Using onnx-community/gemma-3n-E2B-it-ONNX - Google's efficient multimodal AI
+    </div>
+    
+    <div class="status" id="status">
+      Loading model...
+    </div>
+    
+    <div class="chat-messages" id="messages">
+      <div class="empty-state">
+        Welcome! Once Gemma 3n loads, you can start chatting. This model supports text conversations and is designed to run efficiently on your local hardware.
+      </div>
+    </div>
+    
+    <div class="chat-input">
+      <div class="input-container">
+        <input type="text" id="messageInput" placeholder="Type your message..." disabled>
+        <button id="sendButton" disabled>Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    const messagesContainer = document.getElementById('messages');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const statusElement = document.getElementById('status');
+    const loadingScreen = document.getElementById('loadingScreen');
+    const loadingMessage = document.getElementById('loadingMessage');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const chatContainer = document.getElementById('chatContainer');
+
+    const API_BASE = 'http://localhost:3001/api';
+
+    let isModelReady = false;
+
+    function updateLoadingProgress(progress) {
+      const { status, progress: percent, message } = progress;
+      
+      loadingMessage.textContent = message;
+      progressFill.style.width = `${percent}%`;
+      progressText.textContent = `${percent}%`;
+      
+      if (status === 'error') {
+        loadingMessage.style.color = '#dc3545';
+        progressFill.style.background = '#dc3545';
+      } else if (status === 'ready') {
+        loadingMessage.style.color = '#28a745';
+        progressFill.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+      }
+    }
+
+    async function checkModelStatus() {
+      try {
+        const response = await fetch(`${API_BASE}/status`);
+        const data = await response.json();
+        
+        if (data.modelLoaded) {
+          // Model is ready
+          statusElement.textContent = '✅ Gemma 3n model ready - Start chatting!';
+          statusElement.className = 'status ready';
+          messageInput.disabled = false;
+          sendButton.disabled = false;
+          isModelReady = true;
+          
+          // Hide loading screen
+          loadingScreen.classList.add('hidden');
+        } else if (data.isLoading) {
+          // Model is loading
+          updateLoadingProgress(data.loadingProgress);
+          statusElement.textContent = '⏳ Loading Gemma 3n model...';
+          statusElement.className = 'status loading';
+          setTimeout(checkModelStatus, 2000);
+        } else {
+          // Model not started loading yet
+          statusElement.textContent = '⏳ Starting model initialization...';
+          statusElement.className = 'status loading';
+          setTimeout(checkModelStatus, 3000);
+        }
+      } catch (error) {
+        statusElement.textContent = '❌ Error connecting to server. Make sure the backend is running.';
+        statusElement.className = 'status error';
+        loadingMessage.textContent = 'Error connecting to server. Please check if the backend is running on port 3001.';
+        loadingMessage.style.color = '#dc3545';
+        setTimeout(checkModelStatus, 5000);
+      }
+    }
+
+    function addMessage(content, isUser = false, isLoading = false) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isUser ? 'user' : 'bot'}${isLoading ? ' loading' : ''}`;
+      messageDiv.textContent = content;
+      
+      // Remove empty state if it exists
+      const emptyState = messagesContainer.querySelector('.empty-state');
+      if (emptyState) {
+        emptyState.remove();
+      }
+      
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      return messageDiv;
+    }
+
+    async function sendMessage() {
+      const message = messageInput.value.trim();
+      if (!message || !isModelReady) return;
+
+      messageInput.value = '';
+      sendButton.disabled = true;
+
+      // Add user message
+      addMessage(message, true);
+
+      // Add loading message
+      const loadingMsg = addMessage('Gemma is thinking...', false, true);
+
+      try {
+        const response = await fetch(`${API_BASE}/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ message }),
+        });
+
+        const data = await response.json();
+
+        // Remove loading message
+        loadingMsg.remove();
+
+        if (response.ok) {
+          addMessage(data.reply);
+        } else {
+          addMessage(`Error: ${data.error}`, false);
+        }
+      } catch (error) {
+        loadingMsg.remove();
+        addMessage('Sorry, there was an error processing your request.', false);
+        console.error('Error:', error);
+      } finally {
+        sendButton.disabled = false;
+      }
+    }
+
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Initialize the app
+    checkModelStatus();
+  </script>
+</body>
+</html>
