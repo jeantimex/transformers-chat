@@ -1,4 +1,4 @@
-import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.0/dist/transformers.min.js';
+import { pipeline, env } from '@huggingface/transformers';
 
 // Get UI elements
 const messagesContainer = document.getElementById('messages');

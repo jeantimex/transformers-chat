@@ -8,8 +8,9 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {},
-
+  "dependencies": {
+    "@huggingface/transformers": "^3.7.0"
+  },
   "devDependencies": {
     "vite": "^5.0.0"
   }
