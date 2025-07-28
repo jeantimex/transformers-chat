@@ -91,6 +91,52 @@ function addMessage(content, isUser = false, isLoading = false) {
     return messageDiv;
 }
 
+// ElevenLabs API Key
+const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
+if (!elevenLabsApiKey) {
+    console.warn("ElevenLabs API key not found. Text-to-speech will be disabled. Please add it to your .env file.");
+}
+
+// Function to convert text to speech and play it
+async function playAIAudio(text) {
+    if (!elevenLabsApiKey || !text) return;
+
+    const voiceId = '21m00Tcm4TlvDq8ikWAM'; // A default voice, e.g., Rachel
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'xi-api-key': elevenLabsApiKey,
+            },
+            body: JSON.stringify({
+                text: text,
+                model_id: 'eleven_multilingual_v2',
+                voice_settings: {
+                    stability: 0.5,
+                    similarity_boost: 0.75,
+                },
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail.message || `API request failed with status ${response.status}`);
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.play();
+
+    } catch (error) {
+        console.error('Error with ElevenLabs API:', error);
+        addMessage(`Sorry, I could not read the response out loud. Error: ${error.message}`, false);
+    }
+}
+
 // Function to handle sending a message
 async function sendMessage() {
     const message = messageInput.value.trim();
@@ -111,6 +157,9 @@ async function sendMessage() {
         loadingMsg.remove();
         addMessage(reply || 'I\'m not sure how to respond to that.');
         conversationHistory.push({ role: 'assistant', content: reply });
+
+        // Play the AI's response
+        playAIAudio(reply);
 
     } catch (error) {
         loadingMsg.remove();
