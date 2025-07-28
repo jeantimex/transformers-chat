@@ -6,15 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "server": "node server.js"
+    "preview": "vite preview"
   },
-  "dependencies": {
-    "@huggingface/transformers": "^3.7.0",
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1"
-  },
+  "dependencies": {},
+
   "devDependencies": {
     "vite": "^5.0.0"
   }

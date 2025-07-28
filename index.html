@@ -261,9 +261,9 @@
     <div class="loading-screen" id="loadingScreen">
       <div class="loading-content">
         <div class="loading-spinner"></div>
-        <div class="loading-title">Loading Gemma 3n Model</div>
+        <div class="loading-title">Loading Qwen2.5 Model</div>
         <div class="loading-message" id="loadingMessage">
-          Initializing Gemma 3n model...
+          Initializing Qwen2.5 model...
         </div>
         <div class="progress-bar">
           <div class="progress-fill" id="progressFill"></div>
@@ -277,11 +277,11 @@
     </div>
 
     <div class="chat-header">
-      🤖 Gemma 3n Chat Assistant
+      🤖 Qwen2.5 Chat Assistant
     </div>
     
     <div class="model-info">
-      Using onnx-community/gemma-3n-E2B-it-ONNX - Google's efficient multimodal AI
+      Using onnx-community/Qwen2.5-0.5B-Instruct-onnx-web - A powerful and efficient chat model.
     </div>
     
     <div class="status" id="status">
@@ -290,7 +290,7 @@
     
     <div class="chat-messages" id="messages">
       <div class="empty-state">
-        Welcome! Once Gemma 3n loads, you can start chatting. This model supports text conversations and is designed to run efficiently on your local hardware.
+        Welcome! Once Qwen2.5 loads, you can start chatting. This model supports text conversations and is designed to run efficiently on your local hardware.
       </div>
     </div>
     
@@ -302,141 +302,6 @@
     </div>
   </div>
 
-  <script type="module">
-    const messagesContainer = document.getElementById('messages');
-    const messageInput = document.getElementById('messageInput');
-    const sendButton = document.getElementById('sendButton');
-    const statusElement = document.getElementById('status');
-    const loadingScreen = document.getElementById('loadingScreen');
-    const loadingMessage = document.getElementById('loadingMessage');
-    const progressFill = document.getElementById('progressFill');
-    const progressText = document.getElementById('progressText');
-    const chatContainer = document.getElementById('chatContainer');
-
-    const API_BASE = 'http://localhost:3001/api';
-
-    let isModelReady = false;
-
-    function updateLoadingProgress(progress) {
-      const { status, progress: percent, message } = progress;
-      
-      loadingMessage.textContent = message;
-      progressFill.style.width = `${percent}%`;
-      progressText.textContent = `${percent}%`;
-      
-      if (status === 'error') {
-        loadingMessage.style.color = '#dc3545';
-        progressFill.style.background = '#dc3545';
-      } else if (status === 'ready') {
-        loadingMessage.style.color = '#28a745';
-        progressFill.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
-      }
-    }
-
-    async function checkModelStatus() {
-      try {
-        const response = await fetch(`${API_BASE}/status`);
-        const data = await response.json();
-        
-        if (data.modelLoaded) {
-          // Model is ready
-          statusElement.textContent = '✅ Gemma 3n model ready - Start chatting!';
-          statusElement.className = 'status ready';
-          messageInput.disabled = false;
-          sendButton.disabled = false;
-          isModelReady = true;
-          
-          // Hide loading screen
-          loadingScreen.classList.add('hidden');
-        } else if (data.isLoading) {
-          // Model is loading
-          updateLoadingProgress(data.loadingProgress);
-          statusElement.textContent = '⏳ Loading Gemma 3n model...';
-          statusElement.className = 'status loading';
-          setTimeout(checkModelStatus, 2000);
-        } else {
-          // Model not started loading yet
-          statusElement.textContent = '⏳ Starting model initialization...';
-          statusElement.className = 'status loading';
-          setTimeout(checkModelStatus, 3000);
-        }
-      } catch (error) {
-        statusElement.textContent = '❌ Error connecting to server. Make sure the backend is running.';
-        statusElement.className = 'status error';
-        loadingMessage.textContent = 'Error connecting to server. Please check if the backend is running on port 3001.';
-        loadingMessage.style.color = '#dc3545';
-        setTimeout(checkModelStatus, 5000);
-      }
-    }
-
-    function addMessage(content, isUser = false, isLoading = false) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `message ${isUser ? 'user' : 'bot'}${isLoading ? ' loading' : ''}`;
-      messageDiv.textContent = content;
-      
-      // Remove empty state if it exists
-      const emptyState = messagesContainer.querySelector('.empty-state');
-      if (emptyState) {
-        emptyState.remove();
-      }
-      
-      messagesContainer.appendChild(messageDiv);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      
-      return messageDiv;
-    }
-
-    async function sendMessage() {
-      const message = messageInput.value.trim();
-      if (!message || !isModelReady) return;
-
-      messageInput.value = '';
-      sendButton.disabled = true;
-
-      // Add user message
-      addMessage(message, true);
-
-      // Add loading message
-      const loadingMsg = addMessage('Gemma is thinking...', false, true);
-
-      try {
-        const response = await fetch(`${API_BASE}/chat`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ message }),
-        });
-
-        const data = await response.json();
-
-        // Remove loading message
-        loadingMsg.remove();
-
-        if (response.ok) {
-          addMessage(data.reply);
-        } else {
-          addMessage(`Error: ${data.error}`, false);
-        }
-      } catch (error) {
-        loadingMsg.remove();
-        addMessage('Sorry, there was an error processing your request.', false);
-        console.error('Error:', error);
-      } finally {
-        sendButton.disabled = false;
-      }
-    }
-
-    sendButton.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-
-    // Initialize the app
-    checkModelStatus();
-  </script>
+  <script type="module" src="/main.js"></script>
 </body>
 </html>

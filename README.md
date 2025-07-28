@@ -1,6 +1,6 @@
 # Transformers Chat
 
-A simple chat app using transformers.js, Vite, and Express.
+A simple chat app using transformers.js and Vite. This application uses the `onnx-community/Qwen2.5-0.5B-Instruct-onnx-web` model from Hugging Face and runs it in the browser using WebGPU for acceleration.
 
 ## Prerequisites
 
@@ -21,41 +21,21 @@ Make sure you have Node.js and npm installed on your system.
     npm install
     ```
 
-3. **Environment Variables:**
+3. **Running the application:**
 
-    This project uses a `.env` file for environment variables. Some Hugging Face models require authentication, which can be provided via an `HF_TOKEN` environment variable.
-
-    Create a `.env` file in the root of the project and add any necessary variables. For a basic setup, you can copy the example:
+    Start the development server:
 
     ```bash
-    cp .env.example .env
+    npm run dev
     ```
 
-    *Note: If `.env.example` does not exist, you can create a new `.env` file.*
+    Then, open your browser and navigate to the URL provided by Vite (usually `http://localhost:5173`).
 
-4. **Running the application:**
-
-    You need to run the server and the frontend separately.
-
-    * **Start the server:**
-
-        ```bash
-        npm run server
-        ```
-
-        This will start the Express server on the port specified in your environment or the default.
-
-    * **Start the frontend (in a new terminal):**
-
-        ```bash
-        npm run dev
-        ```
-
-        This will start the Vite development server, and you can access the chat application in your browser at the provided URL.
+    **Note on Gated Models:**
+    Some models require you to be logged into your Hugging Face account. If you encounter any issues, make sure you are logged in at [huggingface.co](https://huggingface.co).
 
 ## Available Scripts
 
-* `npm run dev`: Starts the Vite dev server.
+* `npm run dev`: Starts the Vite development server.
 * `npm run build`: Builds the project for production.
 * `npm run preview`: Previews the production build.
-* `npm run server`: Starts the Express server.
